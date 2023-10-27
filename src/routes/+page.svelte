@@ -14,4 +14,4 @@
     // onSnapshot(ref, () => {console.log('read')});
 </script>
 
-<p>{$store?.value}</p>
+<button on:click={() => {$store.value += 1}}>{$store?.value}</button>
