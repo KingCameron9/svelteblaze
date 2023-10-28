@@ -1,43 +1,43 @@
 import { type Writable, writable } from 'svelte/store';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, type Unsubscribe } from 'firebase/firestore';
 import { db } from '../testing/firebase.ts';
 
 //TODO create more options
 type DocWriteOptions = {};
 
+interface DocWrite<T> {
+	subscribe: (cb: (value: T | null) => void) => void | (() => void);
+	set: (value: T) => void;
+}
+
 export function docWrite<T = object>(
 	path: string,
 	placeHolder?: T,
 	opts?: DocWriteOptions
-): Writable<T> {
-	let store = writable<T>(placeHolder);
-
+): DocWrite<T> {
 	let ref = doc(db, path);
 
-	//when firebase data changes
-	onSnapshot(ref, (snapshot) => {
-		let data = snapshot.data() as T;
-		if (data == null) return;
+	let { subscribe } = writable<T>(placeHolder, (set) => {
+		//when firebase data changes
+		let unsubscribe = onSnapshot(ref, (snapshot) => {
+			console.log('read');
+			let data = snapshot.data() as T;
+			if (data == null) return;
 
-		//sets hidden parameter that keeps track of if this update was caused by a firebase change
-		(data as any)._setByFirebase = true;
+			//set store to new value
+			set(data);
+		});
 
-		//set store to new value
-		store.set(data);
+		return () => unsubscribe();
 	});
 
-	store.subscribe((snapshot) => {
-		if (snapshot == null) return;
+	const set = (value: T) => {
+		console.log('read');
+		setDoc(ref, value as object);
+	};
 
-		//if this udpate was caused by firebase change, don't update and delete the marker
-		if ('_setByFirebase' in (snapshot as any)) {
-			delete (snapshot as any)._setByFirebase;
-			return;
-		}
-
-		//Else, update firebase because store has been changed
-		setDoc(ref, snapshot as object);
-	});
-
-	return store;
+	return {
+		subscribe,
+		set
+	};
 }
