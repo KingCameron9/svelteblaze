@@ -2,7 +2,7 @@
     import {app, db} from '$lib/testing/firebase.ts'
     import { doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore';
     import {docWrite} from '$lib/stores/doc.ts'
-    import {colWrite} from '$lib/stores/col.ts'
+    import {colRead} from '$lib/stores/col.ts'
 	import { goto } from '$app/navigation';
 	import { onDestroy } from 'svelte';
 
@@ -12,11 +12,13 @@
         value: number;
     }
 
-    let store = colWrite<Def>('/testing/default/collection');
+    let store = colRead<Def[]>('/testing/default/collection');
     // onSnapshot(ref, () => {console.log('read')});
     
 </script>
 
-<!-- <button on:click={() => {$store.value += 1}}>{$store?.value}</button> -->
+<p>{JSON.stringify($store)}</p>
+<p>{JSON.stringify($store)}</p>
+
 <button on:click={() => {goto('other')}}>leave</button>
 

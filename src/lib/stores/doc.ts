@@ -17,7 +17,7 @@ export function docWrite<T = object>(
 ): DocWrite<T> {
 	let ref = doc(db, path);
 
-	let { subscribe } = writable<T>(placeHolder, (set) => {
+	let store = writable<T>(placeHolder, (set) => {
 		//when firebase data changes
 		let unsubscribe = onSnapshot(ref, (snapshot) => {
 			console.log('read');
@@ -30,6 +30,8 @@ export function docWrite<T = object>(
 
 		return () => unsubscribe();
 	});
+
+	const { subscribe } = store;
 
 	const set = (value: T) => {
 		console.log('read');
